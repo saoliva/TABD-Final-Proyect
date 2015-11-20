@@ -1,4 +1,5 @@
 
-public class Neo4jController {
+public class Neo4jController 
+{
 
 }
