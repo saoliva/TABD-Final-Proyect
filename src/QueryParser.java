@@ -12,5 +12,13 @@ public class QueryParser
 		 mc = new MongoDBController();
 	}
 	
+	public void recieveQuery(String query)
+	{
+		nc.loadDB("./Escritorio");
+		nc.doQuery(query);
+		
+		nc.shutDown();
+	}
+	
 	
 }
