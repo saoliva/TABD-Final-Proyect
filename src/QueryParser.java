@@ -16,7 +16,7 @@ public class QueryParser
 	{
 		nc.loadDB("./Escritorio");
 		nc.doQuery(query);
-		
+		nc.removeData();
 		nc.shutDown();
 	}
 	

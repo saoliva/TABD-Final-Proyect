@@ -61,6 +61,21 @@ public class Neo4jController
         // END SNIPPET: shutdownServer
     }
 	
+	void removeData()
+    {
+        try ( Transaction tx = graphDB.beginTx() )
+        {
+            // START SNIPPET: removingData
+            // let's remove the data
+            firstNode.getSingleRelationship( RelTypes.KNOWS, Direction.OUTGOING ).delete();
+            firstNode.delete();
+            secondNode.delete();
+            // END SNIPPET: removingData
+
+            tx.success();
+        }
+    }
+	
 	
 	
 	 // START SNIPPET: shutdownHook
