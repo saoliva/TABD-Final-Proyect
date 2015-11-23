@@ -22,12 +22,17 @@ public class QueryParser
 		String where_clause = "";
 		String node = "";
 		int return_position = query.indexOf("RETURN");
-
+		int cant_mongo_queries = 1; // esto es para los and's entre consultas mongo
+		boolean where = false;
 		
-		if(!query.contains("WHERE") || !query.contains("where"))
+		if(!query.contains("WHERE"))
 		{
 			where_clause += "WHERE ";
 		}		
+		else
+		{
+			where = true;
+		}
 		
 		while((left = query.indexOf("{", left+1)) != -1) // verificar cuandos { tiene
 		{
@@ -43,10 +48,23 @@ public class QueryParser
 			
 			exists_mongo = true;
 			right = query.indexOf("}", right+1);
-			node = getNodeName(query,left);	
+			node = getNodeName(query,left, cant_mongo_queries);	
 			
+			int cant_params = 0;
+			if(cant_mongo_queries > 1 || where)
+			{
+				where_clause += "AND ";
+			}
+			if(cant_params == 0) // esto es para poner los OR's
+			{
+				where_clause += node +".id = 1 ";
+			}
+			else
+			{
+				where_clause += "OR " + node +".id = 1 ";
+			}
 			
-						
+			cant_mongo_queries ++;
 		}
 		
 		if(!exists_mongo)
@@ -70,12 +88,13 @@ public class QueryParser
 		//nc.shutDown();
 	}
 	
-	String getNodeName(String query, int left) // obtiene el nombre del nodo a que se le asignara la respuesta de mongo
+	String getNodeName(String query, int left, int cant_att) // obtiene el nombre del nodo a que se le asignara la respuesta de mongo
 	{
 		String node;
 		int bracket_position = 0; // posicion del inicio de parentesis
 		int type_position = 0;  // posicion de los 2 puntos
-		int aux = 0;
+		int aux = -1;
+		int counter = 0;
 		
 		while(true)
 		{
@@ -83,15 +102,23 @@ public class QueryParser
 			
 			if(type_position > left || type_position == -1)
 			{
-				type_position = aux;
+				if(counter < cant_att)
+				{
+					type_position = left;
+				}
+				else
+				{
+					type_position = aux;
+				}				
 				break;
 			}
 			else
 			{
 				aux = type_position;
-			}				
+			}			
+			counter++;
 		}
-		aux = 0;
+		aux = -1;
 		while(true)
 		{
 			 bracket_position = query.indexOf("(", bracket_position+1);
@@ -107,7 +134,7 @@ public class QueryParser
 			}				
 		}
 		
-		node = query.substring(bracket_position+1, type_position);
+		node = query.substring(bracket_position+1, type_position).split(" ")[0];
 		
 		return node;
 	}
