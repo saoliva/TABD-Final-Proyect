@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 
 public class QueryParser
 {
@@ -10,6 +12,8 @@ public class QueryParser
 	{
 		 nc = new Neo4jController();
 		 mc = new MongoDBController();
+		 /* mc.LoadDB("nombreDB");
+		 mc.LoadCollection("nombreColeccion"); */
 	}
 	
 	public void recieveQuery(String query)
@@ -24,7 +28,7 @@ public class QueryParser
 		int return_position = query.indexOf("RETURN");
 		int cant_mongo_queries = 1; // esto es para los and's entre consultas mongo
 		boolean where = false;
-		
+
 		if(!query.contains("WHERE"))
 		{
 			where_clause += "WHERE ";
@@ -36,6 +40,7 @@ public class QueryParser
 		
 		while((left = query.indexOf("{", left+1)) != -1) // verificar cuandos { tiene
 		{
+			String mongo_query = "";
 			if(right!=0)
 			{
 				new_query += (query.substring(right+1, left));
@@ -49,7 +54,10 @@ public class QueryParser
 			exists_mongo = true;
 			right = query.indexOf("}", right+1);
 			node = getNodeName(query,left, cant_mongo_queries);	
+			mongo_query = query.substring(left+1,right);
+			List<String> ids = new ArrayList<String>();
 			
+			System.out.println(mongo_query);
 			int cant_params = 0;
 			if(cant_mongo_queries > 1 || where)
 			{
