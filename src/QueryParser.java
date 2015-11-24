@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.util.Pair;
+
 public class QueryParser
 {
 
@@ -55,23 +57,34 @@ public class QueryParser
 			right = query.indexOf("}", right+1);
 			node = getNodeName(query,left, cant_mongo_queries);	
 			mongo_query = query.substring(left+1,right);
-			List<String> ids = new ArrayList<String>();
+			String[] attributes = mongo_query.split(",");
+			List<Pair<String, Object>> atts = new ArrayList<Pair<String, Object>>();
+			for(int k = 0; k<attributes.length; k++)
+			{
+				String[] tuple = attributes[k].split(":");
+				atts.add(new Pair<String,Object>(tuple[0].replace(" ", ""), tuple[1].replace(" ", "")));
+				
+			}
 			
-			System.out.println(mongo_query);
+			List<Pair<String, Object>> response = mc.findFieldValue(atts, "id");
+						
 			int cant_params = 0;
 			if(cant_mongo_queries > 1 || where)
 			{
 				where_clause += "AND ";
 			}
-			if(cant_params == 0) // esto es para poner los OR's
-			{
-				where_clause += node +".id = 1 ";
+			for(int k = 0; k<response.size(); k++)
+			{			
+				if(cant_params == 0) // esto es para poner los OR's
+				{
+					where_clause += node +".id = " + response.get(k).getValue();
+				}
+				else
+				{
+					where_clause += "OR " + node +".id = " + response.get(k).getValue();
+				}
+				cant_params++;
 			}
-			else
-			{
-				where_clause += "OR " + node +".id = 1 ";
-			}
-			
 			cant_mongo_queries ++;
 		}
 		
