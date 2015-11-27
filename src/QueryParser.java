@@ -14,12 +14,17 @@ public class QueryParser
 	{
 		 nc = new Neo4jController();
 		 mc = new MongoDBController();
-		 /* mc.LoadDB("nombreDB");
-		 mc.LoadCollection("nombreColeccion"); */
+		 mc.LoadDB("DBVecinos");
+		 mc.LoadCollection("nombreColeccion");
 	}
 	
 	public void recieveQuery(String query)
 	{
+		
+		nc.loadDB("./grafo");
+		//nc.doQuery(query);
+		//nc.removeData();
+		//nc.shutDown();
 		
 		int left = 0;
 		int right = 0;
@@ -62,10 +67,10 @@ public class QueryParser
 			for(int k = 0; k<attributes.length; k++)
 			{
 				String[] tuple = attributes[k].split(":");
-				atts.add(new Pair<String,Object>(tuple[0].replace(" ", ""), tuple[1].replace(" ", "")));
+				atts.add(new Pair<String,Object>(tuple[0].replace(" ", ""), tuple[1].replace(" ", "").replace("\"", "")));
 				
 			}
-			
+			System.out.println(atts.get(0).getValue());
 			List<Pair<String, Object>> response = mc.findFieldValue(atts, "id");
 						
 			int cant_params = 0;
@@ -77,11 +82,11 @@ public class QueryParser
 			{			
 				if(cant_params == 0) // esto es para poner los OR's
 				{
-					where_clause += node +".id = " + response.get(k).getValue();
+					where_clause += node +".id = " + response.get(k).getValue() + " ";
 				}
 				else
 				{
-					where_clause += "OR " + node +".id = " + response.get(k).getValue();
+					where_clause += "OR " + node +".id = " + response.get(k).getValue() + " ";
 				}
 				cant_params++;
 			}

@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -35,20 +38,19 @@ public class Neo4jController
 	{
 		try ( Transaction tx = graphDB.beginTx() )
 		{
-			firstNode = graphDB.createNode();
-            firstNode.setProperty( "message", "Hello, " );
-            secondNode = graphDB.createNode();
-            secondNode.setProperty( "message", "World!" );
-
-            relationship = firstNode.createRelationshipTo( secondNode, RelTypes.KNOWS );
-            relationship.setProperty( "message", "brave Neo4j " );
-            // END SNIPPET: addData
-
+			List<Node> nodes = new ArrayList<Node>();
+			for(int k = 0; k<100 ; k++)
+			{
+				firstNode = graphDB.createNode();
+	            firstNode.setProperty( "message", "Hello, " + k );
+	            
+	            nodes.add(firstNode);
+			}
+			            // END SNIPPET: addData
+			
             // START SNIPPET: readData
-            System.out.print( firstNode.getProperty( "message" ) );
-            System.out.print( relationship.getProperty( "message" ) );
-            System.out.print( secondNode.getProperty( "message" ) );
-		    tx.success();
+            System.out.print( nodes.get(50).getProperty( "message" ) );
+            tx.success();
 		}
 	}
 	
