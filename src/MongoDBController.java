@@ -57,7 +57,7 @@ public class MongoDBController {
 	
 	public  List<Pair<String, Object>> findFieldValue(List<Pair<String, Object>> tuplas, String atributo){
 		//Recibe pares de restricciones y el atributo del que se quiere encontrar la informaci�n
-		
+		//getAllDocument();
 		BasicDBObject query = new BasicDBObject();
 		
 		for(int i =0; i<tuplas.size(); i++){
@@ -70,7 +70,7 @@ public class MongoDBController {
         exclude_include.append("_id", 0);
         /* aqui se deberia hacer un for para que no se 
          * muestre ningun atributo exepto el que se quiera mostrar */
-        System.out.println(query);
+       // System.out.println(query);
         DBCursor cursor = collection.find(query, exclude_include);
         //DBCursor cursor = collection.find();
         List<Pair<String, Object>> resultado = new ArrayList<Pair<String, Object>>();
@@ -78,7 +78,7 @@ public class MongoDBController {
 		try {
 		       while(cursor.hasNext()) {
 		        String[] rs = cursor.next().toString().split(":");
-		        //System.out.println(cursor.next().toString());
+		        //System.out.println(cursor.curr().toString());
 		        resultado.add(new Pair<String,Object>(rs[0], rs[1].replace(" ", "").replace("}","")));
 		        
 		       }

@@ -1,28 +1,30 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.io.fs.FileUtils;
+import org.neo4j.kernel.configuration.Config;
+
+import javafx.util.Pair;
 
 public class Neo4jController 
 {
 	MongoDBController mc;
 	GraphDatabaseService graphDB;
-	Node firstNode;
-	Node secondNode;
-	Relationship relationship;
 	
-	private static enum RelTypes implements RelationshipType
-	{
-	    KNOWS
-	
-	}
 	public Neo4jController()
 	{
 		mc = new MongoDBController();
@@ -30,28 +32,45 @@ public class Neo4jController
 	
 	public void loadDB(String DB_path)
 	{
-		graphDB = new GraphDatabaseFactory().newEmbeddedDatabase( DB_path );
+
+		graphDB = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder( DB_path ).setConfig( GraphDatabaseSettings.allow_store_upgrade, "true").newGraphDatabase();;
 		registerShutdownHook( graphDB );
 	}
 	
-	public void doQuery(String query)
+	public List<Pair<String, List<Integer>>> doQuery(String query)
 	{
+		String rows = "";
+		List<Pair<String, List<Integer>>> atts = new ArrayList<Pair<String, List<Integer>>>();
 		try ( Transaction tx = graphDB.beginTx() )
 		{
-			List<Node> nodes = new ArrayList<Node>();
-			for(int k = 0; k<100 ; k++)
+			Result result = graphDB.execute( query );
+			List<String> columns = result.columns();
+			//System.out.println(columns.size());			
+			for(int i = 0; i<columns.size(); i++)
 			{
-				firstNode = graphDB.createNode();
-	            firstNode.setProperty( "message", "Hello, " + k );
-	            
-	            nodes.add(firstNode);
-			}
-			            // END SNIPPET: addData
+				if(i!=0)
+					result = graphDB.execute( query );
+				List<Integer> values = new ArrayList<Integer>();
+				Iterator<Node> n_column = result.columnAs( columns.get(i));
+				for ( Node node : IteratorUtil.asIterable( n_column ) )
+				{
+				   String nodeResult = node + ": " + node.getProperty( "id" );
+				   //System.out.println(nodeResult);					
+				   if(!values.contains(node.getProperty( "id" )))
+				   {
+					   String[] aux = nodeResult.split(":");
+					   values.add(Integer.parseInt(aux[1].replace(" ", "")));
+				   }
+					
+				}
+				atts.add(new Pair<String,List<Integer>>(columns.get(i), values));
+		    }
 			
-            // START SNIPPET: readData
-            System.out.print( nodes.get(50).getProperty( "message" ) );
-            tx.success();
+			
+			tx.success();
+			
 		}
+		return atts;
 	}
 	
 	void shutDown()
@@ -62,23 +81,7 @@ public class Neo4jController
         graphDB.shutdown();
         // END SNIPPET: shutdownServer
     }
-	
-	void removeData()
-    {
-        try ( Transaction tx = graphDB.beginTx() )
-        {
-            // START SNIPPET: removingData
-            // let's remove the data
-            firstNode.getSingleRelationship( RelTypes.KNOWS, Direction.OUTGOING ).delete();
-            firstNode.delete();
-            secondNode.delete();
-            // END SNIPPET: removingData
-
-            tx.success();
-        }
-    }
-	
-	
+		
 	
 	 // START SNIPPET: shutdownHook
     private static void registerShutdownHook( final GraphDatabaseService graphDb )

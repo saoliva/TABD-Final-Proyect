@@ -20,11 +20,7 @@ public class QueryParser
 	
 	public void recieveQuery(String query)
 	{
-		
-		nc.loadDB("./grafo");
-		//nc.doQuery(query);
-		//nc.removeData();
-		//nc.shutDown();
+		nc.loadDB("grafos");
 		
 		int left = 0;
 		int right = 0;
@@ -70,9 +66,8 @@ public class QueryParser
 				atts.add(new Pair<String,Object>(tuple[0].replace(" ", ""), tuple[1].replace(" ", "").replace("\"", "")));
 				
 			}
-			System.out.println(atts.get(0).getValue());
+			
 			List<Pair<String, Object>> response = mc.findFieldValue(atts, "id");
-						
 			int cant_params = 0;
 			if(cant_mongo_queries > 1 || where)
 			{
@@ -82,17 +77,20 @@ public class QueryParser
 			{			
 				if(cant_params == 0) // esto es para poner los OR's
 				{
-					where_clause += node +".id = " + response.get(k).getValue() + " ";
+					where_clause += "( " + node +".id = " + response.get(k).getValue() + " ";
 				}
 				else
 				{
 					where_clause += "OR " + node +".id = " + response.get(k).getValue() + " ";
 				}
+				if(k == response.size()-1)
+					where_clause += ")";
 				cant_params++;
 			}
 			cant_mongo_queries ++;
 		}
-		
+		List<String> returns_value = new ArrayList<String>();
+		List<List<String>> values = new ArrayList<List<String>>();
 		if(!exists_mongo)
 		{
 			new_query += query;
@@ -103,15 +101,86 @@ public class QueryParser
 			
 			new_query += where_clause;
 			
-			new_query += query.substring(return_position);
+			String return_clause = "RETURN ";
+			
+			String returns = query.substring(return_position).replace("RETURN", "");
+			
+			String[] each_return = returns.split(",");
+			
+			
+			for(int i = 0; i<each_return.length; i++)
+			{
+				each_return[i] = each_return[i].replace(" ", "");
+				
+				if(each_return[i].contains("."))
+				{
+					String[] names = each_return[i].split("\\.");
+					names[0] = names[0].replace(" ", "");
+					names[1] = names[1].replace(" ", "");
+					if(!returns_value.contains(names[0]))
+					{
+						returns_value.add(names[0]);
+						values.add(new ArrayList<String>());
+						int pos= returns_value.indexOf(names[0]);
+						values.get(pos).add(names[1]);
+					}
+					else
+					{
+						int pos= returns_value.indexOf(names[0]);
+						if(!values.get(pos).contains(names[1]))
+						{
+							values.get(pos).add(names[1]);
+						}
+						
+					}
+				}
+				else
+				{
+					if(!returns_value.contains(each_return[i]))
+					{
+						returns_value.add(each_return[i]);
+						int pos= returns_value.indexOf(each_return[i]);
+						values.add(new ArrayList<String>());
+						
+					}
+				}
+			}
+			
+			for(int i = 0; i<returns_value.size(); i++)
+			{
+				return_clause += returns_value.get(i);
+				if(returns_value.size()>1 && i!=returns_value.size()-1)
+					return_clause += ", ";
+			}
+			
+			new_query += return_clause;
 		}
-		
+
 		System.out.println(new_query);
 		
-		//nc.loadDB("./Escritorio");
-		//nc.doQuery(query);
-		//nc.removeData();
-		//nc.shutDown();
+		List<Pair<String, List<Integer>>> neo_response =  nc.doQuery(new_query);
+		
+		for(int i = 0; i<neo_response.size(); i++) // itero entre la cantidad de returns de la consulta
+		{
+			String r = neo_response.get(i).getKey();
+			List<Integer> l = neo_response.get(i).getValue();
+			int pos = returns_value.indexOf(r);
+			for(int j = 0; j<values.get(i).size(); j++)// itero en los atributos que se piden de los nodos
+			{
+				for(int k = 0; k<l.size() ; k++) // itero entre los nodos que me dio neo
+				{
+					List<Pair<String, Object>> atts = new ArrayList<Pair<String, Object>>();
+					atts.add(new Pair<String,Object>("id", l.get(k)));										
+					List<Pair<String, Object>> response2 = mc.findFieldValue(atts, values.get(i).get(j));
+					
+					System.out.println(r + "." + values.get(i).get(j) + ":" + response2.get(0).getValue());
+			
+				}
+			}
+		}
+		
+		
+		nc.shutDown();
 	}
 	
 	String getNodeName(String query, int left, int cant_att) // obtiene el nombre del nodo a que se le asignara la respuesta de mongo
@@ -124,7 +193,7 @@ public class QueryParser
 		
 		while(true)
 		{
-			type_position = query.indexOf(":", type_position+1);
+			type_position = query.substring(left).indexOf(":", type_position+1);
 			
 			if(type_position > left || type_position == -1)
 			{
