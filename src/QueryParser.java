@@ -129,6 +129,28 @@ public class QueryParser
 						
 					}
 				}
+				else if(each_return[i].contains("COUNT"))
+				{
+					int lefti = each_return[i].indexOf("(");
+					int righti = each_return[i].indexOf(")");
+					String na = each_return[i].substring(lefti+1, righti).replace(" ", ""); 
+					if(!returns_value.contains(na))
+					{
+						returns_value.add(na);
+						values.add(new ArrayList<String>());
+						int pos= returns_value.indexOf(na);
+						values.get(pos).add("COUNT");
+					}
+					else
+					{
+						int pos= returns_value.indexOf(na);
+						if(!values.get(pos).contains("COUNT"))
+						{
+							values.get(pos).add("COUNT");
+						}
+						
+					}
+				}
 				else
 				{
 					if(!returns_value.contains(each_return[i]))
@@ -149,7 +171,7 @@ public class QueryParser
 			}
 			
 			new_query += return_clause;
-		}
+		}// end si no existe consulta mongo anterior
 		else
 		{
 			new_query += (query.substring(right+1, return_position));
@@ -189,6 +211,28 @@ public class QueryParser
 						
 					}
 				}
+				else if(each_return[i].contains("COUNT"))
+				{
+					int lefti = each_return[i].indexOf("(");
+					int righti = each_return[i].indexOf(")");
+					String na = each_return[i].substring(lefti+1, righti).replace(" ", ""); 
+					if(!returns_value.contains(na))
+					{
+						returns_value.add(na);
+						values.add(new ArrayList<String>());
+						int pos= returns_value.indexOf(na);
+						values.get(pos).add("COUNT");
+					}
+					else
+					{
+						int pos= returns_value.indexOf(na);
+						if(!values.get(pos).contains("COUNT"))
+						{
+							values.get(pos).add("COUNT");
+						}
+						
+					}
+				}
 				else
 				{
 					if(!returns_value.contains(each_return[i]))
@@ -209,7 +253,7 @@ public class QueryParser
 			}
 			
 			new_query += return_clause;
-		}
+		}// end else
 
 		System.out.println(new_query);
 		
@@ -225,11 +269,21 @@ public class QueryParser
 				for(int k = 0; k<l.size() ; k++) // itero entre los nodos que me dio neo
 				{
 					List<Pair<String, Object>> atts = new ArrayList<Pair<String, Object>>();
-					atts.add(new Pair<String,Object>("id", l.get(k)));										
-					List<Pair<String, Object>> response2 = mc.findFieldValue(atts, values.get(i).get(j));
+					atts.add(new Pair<String,Object>("id", l.get(k)));	
+					if(values.get(i).get(j).equals("COUNT"))
+					{
+						System.out.println(values.get(i).get(j)+ "(" + r + ")" + ":" + l.size());
+						break;
+						
+					}
+					else
+					{
+						List<Pair<String, Object>> response2 = mc.findFieldValue(atts, values.get(i).get(j));
+						
+						System.out.println(r + "." + values.get(i).get(j) + ":" + response2.get(0).getValue());
+				
+					}
 					
-					System.out.println(r + "." + values.get(i).get(j) + ":" + response2.get(0).getValue());
-			
 				}
 			}
 		}

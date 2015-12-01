@@ -45,7 +45,7 @@ public class Neo4jController
 		{
 			Result result = graphDB.execute( query );
 			List<String> columns = result.columns();
-			//System.out.println(columns.size());			
+			//System.out.println(columns);			
 			for(int i = 0; i<columns.size(); i++)
 			{
 				if(i!=0)
