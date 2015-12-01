@@ -16,11 +16,12 @@ public class QueryParser
 		 mc = new MongoDBController();
 		 mc.LoadDB("DBVecinos");
 		 mc.LoadCollection("nombreColeccion");
+		 nc.loadDB("grafos");
 	}
 	
 	public void recieveQuery(String query)
-	{
-		nc.loadDB("grafos");
+	{		
+		long start = System.currentTimeMillis( );
 		
 		int left = 0;
 		int right = 0;
@@ -232,8 +233,11 @@ public class QueryParser
 				}
 			}
 		}
+		long end = System.currentTimeMillis( );
+        long diff = end - start;
 		
-		
+        System.out.println("Time Elapsed: " + diff + "ms");
+        
 		nc.shutDown();
 	}
 	
