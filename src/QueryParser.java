@@ -93,7 +93,61 @@ public class QueryParser
 		List<List<String>> values = new ArrayList<List<String>>();
 		if(!exists_mongo)
 		{
-			new_query += query;
+			new_query += query.substring(0,return_position);
+			
+			String return_clause = "RETURN ";
+			
+			String returns = query.substring(return_position).replace("RETURN", "");
+			
+			String[] each_return = returns.split(",");
+			
+			
+			for(int i = 0; i<each_return.length; i++)
+			{
+				each_return[i] = each_return[i].replace(" ", "");
+				
+				if(each_return[i].contains("."))
+				{
+					String[] names = each_return[i].split("\\.");
+					names[0] = names[0].replace(" ", "");
+					names[1] = names[1].replace(" ", "");
+					if(!returns_value.contains(names[0]))
+					{
+						returns_value.add(names[0]);
+						values.add(new ArrayList<String>());
+						int pos= returns_value.indexOf(names[0]);
+						values.get(pos).add(names[1]);
+					}
+					else
+					{
+						int pos= returns_value.indexOf(names[0]);
+						if(!values.get(pos).contains(names[1]))
+						{
+							values.get(pos).add(names[1]);
+						}
+						
+					}
+				}
+				else
+				{
+					if(!returns_value.contains(each_return[i]))
+					{
+						returns_value.add(each_return[i]);
+						int pos= returns_value.indexOf(each_return[i]);
+						values.add(new ArrayList<String>());
+						
+					}
+				}
+			}
+			
+			for(int i = 0; i<returns_value.size(); i++)
+			{
+				return_clause += returns_value.get(i);
+				if(returns_value.size()>1 && i!=returns_value.size()-1)
+					return_clause += ", ";
+			}
+			
+			new_query += return_clause;
 		}
 		else
 		{
