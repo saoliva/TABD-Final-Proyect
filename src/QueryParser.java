@@ -20,7 +20,8 @@ public class QueryParser
 	}
 	
 	public void recieveQuery(String query)
-	{		
+	{	
+		System.out.println("Consulta original: " + query);
 		long start = System.currentTimeMillis( );
 		
 		int left = 0;
@@ -255,7 +256,7 @@ public class QueryParser
 			new_query += return_clause;
 		}// end else
 
-		System.out.println(new_query);
+		System.out.println("Query Parseada: " + new_query);
 		
 		List<Pair<String, List<Integer>>> neo_response =  nc.doQuery(new_query);
 		
